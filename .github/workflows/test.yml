@@ -17,13 +17,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Set up C++
-        uses: actions/setup-cpp@v2
+        uses: aminya/setup-cpp@v2
         with:
           compiler: gcc
           version: 11
       - name: Build
         run: |
+          cd code
           g++ -o c_demo c_demo.cpp
       - name: Run
         run: |
+          cd code
           ./c_demo
