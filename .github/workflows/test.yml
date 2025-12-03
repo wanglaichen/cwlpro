@@ -1,0 +1,29 @@
+name: "Test"
+
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up C++
+        uses: actions/setup-cpp@v2
+        with:
+          compiler: gcc
+          version: 11
+      - name: Build
+        run: |
+          g++ -o c_demo c_demo.cpp
+      - name: Run
+        run: |
+          ./c_demo
