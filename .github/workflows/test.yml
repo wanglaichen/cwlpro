@@ -15,13 +15,18 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: centos:7
+      env:
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        GITHUB_SHA: ${{ github.sha }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Install dependencies (if needed)
+      - name: Install dependencies
         run: |
           yum update -y
-          yum install -y gcc gcc-c++
+          yum install -y gcc gcc-c++ git
+      - name: Clone repository
+        run: |
+          git clone https://github.com/${GITHUB_REPOSITORY}.git .
+          git checkout ${GITHUB_SHA}
       - name: Build
         run: |
           cd code
