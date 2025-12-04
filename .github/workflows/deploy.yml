@@ -7,9 +7,8 @@ on:
       - completed
     branches:
       - main
-  push:
     tags:
-      - "release*"  # 当打tag且tag以release开头时触发部署
+      - "release*"  # 同时监听release开头的tag的Test工作流完成
 
 jobs:
   deploy:
