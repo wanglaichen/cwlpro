@@ -1,6 +1,12 @@
 name: "Deploy to CentOS Server"
 
 on:
+  workflow_run:
+    workflows: ["Test"]  # 监听Test工作流完成
+    types:
+      - completed
+    branches:
+      - main
   push:
     tags:
       - "release*"  # 当打tag且tag以release开头时触发部署
@@ -11,8 +17,11 @@ jobs:
     timeout-minutes: 5  # 设置部署超时时间
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Download compiled binary
+        uses: actions/download-artifact@v3
+        with:
+          name: compiled-binary
+          path: ./
 
       - name: Install sshpass
         run: |
@@ -38,11 +47,11 @@ jobs:
           sshpass -e ssh -o StrictHostKeyChecking=no $CENTOS_USER@$CENTOS_HOST "mkdir -p $DEPLOY_PATH"
           echo "已确保部署目录 $DEPLOY_PATH 存在"
           
-          # 上传程序源文件到服务器
-          sshpass -e scp -o StrictHostKeyChecking=no code/c_demo.cpp $CENTOS_USER@$CENTOS_HOST:$DEPLOY_PATH/
+          # 确保可执行文件有执行权限
+          chmod +x ./c_demo
           
-          # 在服务器上编译程序
-          sshpass -e ssh -o StrictHostKeyChecking=no $CENTOS_USER@$CENTOS_HOST "cd $DEPLOY_PATH && g++ -o c_demo c_demo.cpp"
+          # 上传编译好的可执行文件到服务器
+          sshpass -e scp -o StrictHostKeyChecking=no ./c_demo $CENTOS_USER@$CENTOS_HOST:$DEPLOY_PATH/
           
           # 运行程序
           echo "=== 运行程序 ==="

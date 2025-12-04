@@ -29,3 +29,8 @@ jobs:
         run: |
           cd code
           ./c_demo
+      - name: Upload compiled artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: compiled-binary
+          path: code/c_demo  # 上传编译好的可执行文件
