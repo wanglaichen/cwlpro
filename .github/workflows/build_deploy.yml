@@ -1,26 +1,35 @@
-name: "Deploy to CentOS Server"
+name: "Build and Deploy Stable001 to CentOS Server"
 
 on:
-  workflow_run:
-    workflows: ["Test"]  # 监听Test工作流完成
-    types:
-      - completed
+  push:
     branches:
-      - main
+      - stable_001
     tags:
-      - "release*"  # 同时监听release开头的tag的Test工作流完成
+      - "stable001*"  # 当push tag且tag以stable001开头时也运行编译部署
 
 jobs:
-  deploy:
+  build_and_deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 5  # 设置部署超时时间
+    timeout-minutes: 10  # 设置作业超时时间
 
     steps:
-      - name: Download compiled binary
-        uses: actions/download-artifact@v4
-        with:
-          name: compiled-binary
-          path: ./
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl  # 安装curl用于网络测试
+      
+      - name: Build
+        run: |
+          cd code
+          g++ -o release_stable001 c_demo.cpp
+      
+      - name: Run
+        run: |
+          cd code
+          ./release_stable001
 
       - name: Install sshpass
         run: |
@@ -32,7 +41,7 @@ jobs:
           CENTOS_USER: ${{ secrets.CSEVNAME }}  # 服务器用户名
           CENTOS_HOST: ${{ secrets.CHOSTIP }}  # 服务器IP或域名
           CENTOS_PASSWORD: ${{ secrets.CPW }}  # 服务器密码
-          DEPLOY_PATH: "/home/myapp"  # 部署目标文件夹
+          DEPLOY_PATH: "/home/myapp_stable001"  # 部署目标文件夹
         run: |
           echo "=== 开始部署到CentOS服务器 ==="
           
@@ -47,13 +56,13 @@ jobs:
           echo "已确保部署目录 $DEPLOY_PATH 存在"
           
           # 确保可执行文件有执行权限
-          chmod +x ./c_demo
+          chmod +x ./code/release_stable001
           
           # 上传编译好的可执行文件到服务器
-          sshpass -e scp -o StrictHostKeyChecking=no ./c_demo $CENTOS_USER@$CENTOS_HOST:$DEPLOY_PATH/
+          sshpass -e scp -o StrictHostKeyChecking=no ./code/release_stable001 $CENTOS_USER@$CENTOS_HOST:$DEPLOY_PATH/
           
           # 运行程序
           echo "=== 运行程序 ==="
-          sshpass -e ssh -o StrictHostKeyChecking=no $CENTOS_USER@$CENTOS_HOST "cd $DEPLOY_PATH && ./c_demo"
+          sshpass -e ssh -o StrictHostKeyChecking=no $CENTOS_USER@$CENTOS_HOST "cd $DEPLOY_PATH && ./release_stable001"
           
           echo "=== 部署完成 ==="

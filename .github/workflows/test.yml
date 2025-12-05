@@ -1,12 +1,12 @@
-name: "Test"
+name: "Build_Stable001"
 
 
 on:
   push:
     branches:
-      - main
+      - stable_001
     tags:
-      - "release*"  # 当push tag且tag以release开头时也运行测试
+      - "stable001*"  # 当push tag且tag以stable001开头时也运行测试
   pull_request:
     branches:
       - main
@@ -26,13 +26,13 @@ jobs:
       - name: Build
         run: |
           cd code
-          g++ -o c_demo c_demo.cpp
+          g++ -o release_stable001 c_demo.cpp
       - name: Run
         run: |
           cd code
-          ./c_demo
+          ./release_stable001
       - name: Upload compiled artifacts
         uses: actions/upload-artifact@v4
         with:
           name: compiled-binary
-          path: code/c_demo  # 上传编译好的可执行文件
+          path: code/release_stable001  # 上传编译好的可执行文件
