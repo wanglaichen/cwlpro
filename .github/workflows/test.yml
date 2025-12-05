@@ -5,13 +5,6 @@ on:
   push:
     branches:
       - stable_001
-    tags:
-      - "stable001*"  # 当push tag且tag以stable001开头时也运行测试
-  pull_request:
-    branches:
-      - main
-    types:
-      - opened
 jobs:
   test:
     runs-on: ubuntu-latest
