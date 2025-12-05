@@ -21,12 +21,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y curl  # 安装curl用于网络测试
       
-      - name: Build
+      - name: Build with static linking
         run: |
           cd code
-          g++ -o release_stable001 c_demo.cpp
+          g++ -static -o release_stable001 c_demo.cpp
       
-      - name: Run
+      - name: Run test on Ubuntu
         run: |
           cd code
           ./release_stable001
