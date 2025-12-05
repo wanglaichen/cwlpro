@@ -2,8 +2,6 @@ name: "Build and Deploy Stable001 to CentOS Server"
 
 on:
   push:
-    branches:
-      - stable_001
     tags:
       - "stable001*"  # 当push tag且tag以stable001开头时也运行编译部署
 
