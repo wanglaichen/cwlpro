@@ -37,8 +37,8 @@ jobs:
       - name: Deploy to CentOS Server
         env:
           CENTOS_USER: ${{ secrets.CSEVNAME }}  # 服务器用户名
-          CENTOS_HOST: ${{ secrets.CHOSTIP }}  # 服务器IP或域名
-          CENTOS_PASSWORD: ${{ secrets.CPW }}  # 服务器密码
+          CENTOS_HOST: ${{ secrets.HOST2_IP }}  # 服务器IP或域名
+          CENTOS_PASSWORD: ${{ secrets.HOST2_PW }}  # 服务器密码
           DEPLOY_PATH: "/home/myapp_stable001"  # 部署目标文件夹
         run: |
           echo "=== 开始部署到CentOS服务器 ==="
