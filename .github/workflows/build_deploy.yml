@@ -1,4 +1,4 @@
-name: "Build and Deploy Stable001 to CentOS Server"
+name: "构建并部署 Stable001 到 CentOS 服务器"
 
 on:
   push:
@@ -11,34 +11,34 @@ jobs:
     timeout-minutes: 10  # 设置作业超时时间
 
     steps:
-      - name: Checkout code
+      - name: 检出代码
         uses: actions/checkout@v3
         # 默认会拉取触发工作流的标签版本
         # 如果需要指定特定分支，可以添加with块并设置ref参数
         # with:
         #   ref: main
       
-      - name: Install dependencies
+      - name: 安装依赖
         run: |
           sudo apt-get update
           sudo apt-get install -y curl  # 安装curl用于网络测试
       
-      - name: Build with static linking
+      - name: 静态编译构建
         run: |
           cd code
           g++ -static -o release_stable001 c_demo.cpp
       
-      - name: Run test on Ubuntu
+      - name: 在Ubuntu上运行测试
         run: |
           cd code
           ./release_stable001
 
-      - name: Install sshpass
+      - name: 安装sshpass工具
         run: |
           sudo apt-get update
           sudo apt-get install -y sshpass  # 安装sshpass用于密码认证
 
-      - name: Deploy to CentOS Server
+      - name: 部署到CentOS服务器
         env:
           CENTOS_USER: ${{ secrets.CSEVNAME }}  # 服务器用户名
           CENTOS_HOST: ${{ secrets.HOST2_IP }}  # 服务器IP或域名
@@ -56,6 +56,10 @@ jobs:
           # 在服务器上创建部署目录（如果不存在）
           sshpass -e ssh -o StrictHostKeyChecking=no $CENTOS_USER@$CENTOS_HOST "mkdir -p $DEPLOY_PATH"
           echo "已确保部署目录 $DEPLOY_PATH 存在"
+          
+          # 在CentOS服务器上安装必要的依赖包
+          sshpass -e ssh -o StrictHostKeyChecking=no $CENTOS_USER@$CENTOS_HOST "yum install -y curl bind-utils"
+          echo "已安装必要的依赖包"
           
           # 确保可执行文件有执行权限
           chmod +x ./code/release_stable001

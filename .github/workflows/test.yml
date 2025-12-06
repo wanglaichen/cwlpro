@@ -1,4 +1,4 @@
-name: "Build_Stable001"
+name: "构建 Stable001 测试版本"
 
 on:
   push:
@@ -9,21 +9,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 1 # 设置作业超时时间为1分钟，避免无限循环消耗资源
     steps:
-      - name: Checkout code
+      - name: 检出代码
         uses: actions/checkout@v3
-      - name: Install dependencies
+      - name: 安装依赖
         run: |
           sudo apt-get update
           sudo apt-get install -y curl  # 安装curl用于网络测试
-      - name: Build with static linking
+      - name: 静态编译构建
         run: |
           cd code
           g++ -static -o release_stable001 c_demo.cpp
-      - name: Run
+      - name: 运行测试
         run: |
           cd code
           ./release_stable001
-      - name: Upload compiled artifacts
+      - name: 上传编译产物
         uses: actions/upload-artifact@v4
         with:
           name: compiled-binary
