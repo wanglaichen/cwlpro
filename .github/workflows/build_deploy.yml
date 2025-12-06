@@ -13,10 +13,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          # 默认会拉取触发工作流的标签版本
-          # 如果需要指定特定分支，可以取消下面的注释并修改分支名称
-          # ref: main
+        # 默认会拉取触发工作流的标签版本
+        # 如果需要指定特定分支，可以添加with块并设置ref参数
+        # with:
+        #   ref: main
       
       - name: Install dependencies
         run: |
