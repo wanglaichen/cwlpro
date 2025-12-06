@@ -3,6 +3,7 @@
 #include <cstdlib> // 用于调用系统命令
 #include <string>  // 用于处理字符串
 #include <ctime>   // 用于获取时间戳
+#include <cstdio>  // 用于文件操作
 
 int main() {
     // 打开日志文件
@@ -44,10 +45,18 @@ int main() {
     logOutput("执行命令: " + pingCommand + "\n");
     logOutput("------------------------------------\n");
 
-    // 调用系统命令执行ping
-    int pingResult = system(pingCommand.c_str());
+    // 调用系统命令执行ping并捕获输出
+    FILE* pingPipe = popen(pingCommand.c_str(), "r");
+    if (pingPipe) {
+        char buffer[128];
+        while (fgets(buffer, sizeof(buffer), pingPipe) != nullptr) {
+            logOutput(buffer);
+        }
+        pingResult = pclose(pingPipe);
+    }
 
     logOutput("------------------------------------\n");
+    // ping命令成功返回0
     if (pingResult == 0) {
         logOutput("ping测试: 成功\n");
     } else {
