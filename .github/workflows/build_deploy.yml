@@ -28,7 +28,7 @@ jobs:
           cd code
           g++ -static -o release_stable001 c_demo.cpp
       
-      - name: 在Ubuntu上运行测试
+      - name: 在构建环境中运行测试
         run: |
           cd code
           ./release_stable001
