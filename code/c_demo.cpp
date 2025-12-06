@@ -6,12 +6,15 @@
 #include <cstdio>  // 用于文件操作
 
 int main() {
-    // 打开日志文件
-    std::ofstream logFile("network_diagnostic.log");
+    // 创建日志文件（UTF-8编码）
+    std::ofstream logFile("network_diagnostic.log", std::ios::out | std::ios::binary);
     if (!logFile.is_open()) {
         std::cerr << "无法创建日志文件!" << std::endl;
         return 1;
     }
+    
+    // 写入UTF-8 BOM
+    logFile.write("\xEF\xBB\xBF", 3);
     
     // 输出到控制台和日志文件的辅助函数
     auto logOutput = [&](const std::string& message) {
@@ -27,6 +30,9 @@ int main() {
     std::string target = "baidu.com";
     std::string pingCommand;
     std::string curlCommand;
+    int pingResult = -1;
+    int curlResult = -1;
+    int dnsResult = -1;
     
     // 日志头信息
     logOutput("=== 网络连接诊断测试日志 ===\n");
@@ -73,8 +79,15 @@ int main() {
     logOutput("执行命令: " + curlCommand + "\n");
     logOutput("------------------------------------\n");
 
-    // 调用系统命令执行curl
-    int curlResult = system(curlCommand.c_str());
+    // 调用系统命令执行curl并捕获输出
+    FILE* curlPipe = popen(curlCommand.c_str(), "r");
+    if (curlPipe) {
+        char buffer[128];
+        while (fgets(buffer, sizeof(buffer), curlPipe) != nullptr) {
+            logOutput(buffer);
+        }
+        curlResult = pclose(curlPipe);
+    }
 
     logOutput("------------------------------------\n");
     if (curlResult == 0) {
@@ -98,8 +111,15 @@ int main() {
     logOutput("执行命令: " + dnsCommand + "\n");
     logOutput("------------------------------------\n");
 
-    // 调用系统命令执行DNS解析
-    int dnsResult = system(dnsCommand.c_str());
+    // 调用系统命令执行DNS解析并捕获输出
+    FILE* dnsPipe = popen(dnsCommand.c_str(), "r");
+    if (dnsPipe) {
+        char buffer[128];
+        while (fgets(buffer, sizeof(buffer), dnsPipe) != nullptr) {
+            logOutput(buffer);
+        }
+        dnsResult = pclose(dnsPipe);
+    }
 
     logOutput("------------------------------------\n");
     if (dnsResult == 0) {
