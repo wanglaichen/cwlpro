@@ -1,0 +1,74 @@
+name: "构建并部署 Stable001 到 CentOS 服务器"
+
+on:
+  push:
+    tags:
+      - "stable001*"  # 只有当push tag且tag以stable001开头时才运行编译部署
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10  # 设置作业超时时间
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+        # 默认会拉取触发工作流的标签版本
+        # 如果需要指定特定分支，可以添加with块并设置ref参数
+        # with:
+        #   ref: main
+      
+      - name: 安装依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl  # 安装curl用于网络测试
+      
+      - name: 静态编译构建
+        run: |
+          cd code
+          g++ -static -o release_stable001 c_demo.cpp
+      
+      - name: 在构建环境中运行测试
+        run: |
+          cd code
+          ./release_stable001
+
+      - name: 安装sshpass工具
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass  # 安装sshpass用于密码认证
+
+      - name: 部署到CentOS服务器
+        env:
+          CENTOS_USER: ${{ secrets.CSEVNAME }}  # 服务器用户名
+          CENTOS_HOST: ${{ secrets.HOST2_IP }}  # 服务器IP或域名
+          CENTOS_PASSWORD: ${{ secrets.HOST2_PW }}  # 服务器密码
+          DEPLOY_PATH: "/home/myapp_stable001"  # 部署目标文件夹
+        run: |
+          echo "=== 开始部署到CentOS服务器 ==="
+          
+          # 设置sshpass环境变量
+          export SSHPASS=$CENTOS_PASSWORD
+          
+          # 测试SSH连接
+          sshpass -e ssh -o StrictHostKeyChecking=no $CENTOS_USER@$CENTOS_HOST "echo 'SSH连接成功'"
+          
+          # 在服务器上创建部署目录（如果不存在）
+          sshpass -e ssh -o StrictHostKeyChecking=no $CENTOS_USER@$CENTOS_HOST "mkdir -p $DEPLOY_PATH"
+          echo "已确保部署目录 $DEPLOY_PATH 存在"
+          
+          # 在CentOS服务器上安装必要的依赖包
+          sshpass -e ssh -o StrictHostKeyChecking=no $CENTOS_USER@$CENTOS_HOST "yum install -y curl bind-utils"
+          echo "已安装必要的依赖包"
+          
+          # 确保可执行文件有执行权限
+          chmod +x ./code/release_stable001
+          
+          # 上传编译好的可执行文件到服务器
+          sshpass -e scp -o StrictHostKeyChecking=no ./code/release_stable001 $CENTOS_USER@$CENTOS_HOST:$DEPLOY_PATH/
+          
+          # 运行程序
+          echo "=== 运行程序 ==="
+          sshpass -e ssh -o StrictHostKeyChecking=no $CENTOS_USER@$CENTOS_HOST "cd $DEPLOY_PATH && ./release_stable001"
+          
+          echo "=== 部署完成 ==="
